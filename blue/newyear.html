@@ -417,7 +417,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 1100;
             display: none;
             justify-content: center;
@@ -427,36 +427,66 @@
         }
 
         .letter-paper {
-            background: #fdfcf0;
-            width: 80%;
-            max-width: 500px;
-            min-height: 400px;
-            padding: 50px;
-            border-radius: 5px;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), inset 0 0 100px rgba(212, 175, 55, 0.1);
+            background: #f4e4bc;
+            /* 牛皮纸底色 */
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.05) 100%),
+                url('https://www.transparenttextures.com/patterns/handmade-paper.png');
+            width: 90%;
+            max-width: 600px;
+            min-height: 500px;
+            padding: 60px 50px;
+            border-radius: 2px;
+            box-shadow:
+                0 0 50px rgba(0, 0, 0, 0.6),
+                inset 0 0 100px rgba(139, 69, 19, 0.15);
             position: relative;
             transform: translateY(50px);
-            color: #444;
-            font-family: 'Noto Serif SC', serif;
-            line-height: 2;
-            overflow-y: auto;
+            color: #3d2b1f;
+            font-family: "Zhi Mang Xing", cursive;
+            line-height: 1.8;
+            overflow: visible;
+            border: 1px solid #d2b48c;
         }
 
-        .letter-paper::before {
+        /* 增加牛皮纸不规则边缘感 */
+        .letter-paper::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            margin: 15px;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border: 2px solid #8b4513;
+            opacity: 0.1;
             pointer-events: none;
+            mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="f"><feTurbulence type="fractalSum" baseFrequency="0.5" numOctaves="3" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="5"/></filter><rect width="100" height="100" filter="url(%23f)"/></svg>');
         }
 
         .letter-content {
-            font-size: 1.2rem;
+            font-size: 1.8rem;
             white-space: pre-wrap;
+            position: relative;
+            z-index: 2;
+            min-height: 100px;
+        }
+
+        /* 鹅毛笔/鸡毛笔 - 使用 Emoji 方案，既美观又零资源依赖 */
+        .quill-pen {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            font-size: 30px;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            transform-origin: 20% 80%;
+            /* 确保旋转中心在 Emoji 的笔尖位置 */
+            filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
         }
 
         .nav-item.letter-type::before {
@@ -612,6 +642,7 @@
     <!-- 信件展示层 -->
     <div class="letter-overlay" id="letterOverlay" onclick="closeLetter()">
         <div class="letter-paper" onclick="event.stopPropagation()">
+            <div class="quill-pen" id="quillPen">✒️</div>
             <div class="letter-content" id="letterContent"></div>
         </div>
     </div>
@@ -635,6 +666,8 @@
             let width, height;
             let particles = [];
             let fireworks = [];
+            let ambientStars = []; // 环境星尘
+            let shootingStars = []; // 流星
             let isIgnited = false;
             let fireworkCount = 0;
             let scratchProgress = 0;
@@ -653,6 +686,19 @@
                 tubePos = { x: width / 2, y: height * 0.8 };
                 // 引导用户点击的核心光点位置
                 fusePos = { x: tubePos.x, y: tubePos.y };
+
+                // 初始化背景星尘
+                ambientStars = [];
+                for (let i = 0; i < 150; i++) {
+                    ambientStars.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        size: Math.random() * 1.5,
+                        opacity: Math.random() * 0.5 + 0.1,
+                        blinkSpeed: 0.01 + Math.random() * 0.02,
+                        phase: Math.random() * Math.PI * 2
+                    });
+                }
             }
 
             window.addEventListener('resize', resize);
@@ -704,6 +750,16 @@
                 ctx.beginPath();
                 ctx.ellipse(0, 0, 35, Math.max(0.1, 12 + pulse), -time * 0.8, 0, Math.PI * 2);
                 ctx.stroke();
+
+                // 核心额外的放射光芒
+                for (let i = 0; i < 4; i++) {
+                    const angle = time + (i * Math.PI) / 2;
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(angle) * 20, Math.sin(angle) * 20);
+                    ctx.lineTo(Math.cos(angle) * (40 + pulse), Math.sin(angle) * (40 + pulse));
+                    ctx.strokeStyle = `rgba(212, 175, 55, ${0.2 + pulse / 100})`;
+                    ctx.stroke();
+                }
 
                 // 4. 点燃后的动态火花 (如果正在摩擦)
                 if (isDragging && !isIgnited) {
@@ -996,6 +1052,48 @@
                 // 应用相机位移效果
                 ctx.translate(0, cameraY);
 
+                // 绘制背景星尘
+                ambientStars.forEach(star => {
+                    star.phase += star.blinkSpeed;
+                    const currentOpacity = star.opacity * (Math.sin(star.phase) * 0.5 + 0.5);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${currentOpacity})`;
+                    ctx.beginPath();
+                    ctx.arc(star.x, star.y - cameraY, star.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // 绘制并更新流星
+                if (Math.random() < 0.02) {
+                    shootingStars.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height * 0.5,
+                        len: Math.random() * 80 + 20,
+                        speed: Math.random() * 10 + 5,
+                        opacity: 1
+                    });
+                }
+                for (let i = shootingStars.length - 1; i >= 0; i--) {
+                    const s = shootingStars[i];
+                    s.x += s.speed;
+                    s.y += s.speed * 0.5;
+                    s.opacity -= 0.02;
+
+                    if (s.opacity <= 0) {
+                        shootingStars.splice(i, 1);
+                        continue;
+                    }
+
+                    const grad = ctx.createLinearGradient(s.x, s.y, s.x - s.len, s.y - s.len * 0.5);
+                    grad.addColorStop(0, `rgba(255, 255, 255, ${s.opacity})`);
+                    grad.addColorStop(1, 'transparent');
+                    ctx.strokeStyle = grad;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(s.x, s.y);
+                    ctx.lineTo(s.x - s.len, s.y - s.len * 0.5);
+                    ctx.stroke();
+                }
+
                 drawStatic();
 
                 // 点燃后的火花
@@ -1189,7 +1287,7 @@
             'img/xiaohan3.jpg',
             'LETTER' // 特殊类型标识
         ];
-        const letterData = "1234"; // 信件内容
+        const letterFullText = "慢慢飘落的枫叶像思念\n我点燃烛火温暖岁末的秋天\n极光掠过天边 北风掠过想你的容颜\n我把爱烧成了落叶 却换不回熟悉的那张脸\n\n缓缓飘落的枫叶像思念\n为何挽回要赶在冬天来之前\n爱你穿越时间 两行来自秋末的眼泪\n让爱渗透了地面 我要的只是你在我身边";
 
         const textureLoader = new THREE.TextureLoader();
 
@@ -1448,20 +1546,91 @@
             if (dist < 10) onPlanetClick(e.changedTouches[0]);
         });
 
+        let typewriterTimeout;
+
         function showLetter() {
             const overlay = document.getElementById('letterOverlay');
             const content = document.getElementById('letterContent');
-            content.innerText = letterData;
+            const pen = document.getElementById('quillPen');
+
+            content.innerText = "";
             overlay.style.display = 'flex';
+            pen.style.display = 'block';
+
             gsap.to(overlay, { opacity: 1, duration: 0.5 });
             gsap.to('.letter-paper', { y: 0, duration: 0.8, ease: "back.out(1.7)" });
+
+            // 开始书写动画
+            clearTimeout(typewriterTimeout);
+            startTypewriter(content, pen, letterFullText);
+        }
+
+        function startTypewriter(element, pen, text) {
+            let i = 0;
+            const baseDelay = 120; // 基础速度
+
+            function type() {
+                if (i < text.length) {
+                    element.innerText += text.charAt(i);
+                    i++;
+
+                    // 模拟书写时的钢笔抖动
+                    const jitterX = Math.random() * 2;
+                    const jitterY = Math.random() * 2;
+
+                    // 获取当前书写文字的位置，让鸡毛笔跟随
+                    // 我们通过一个临时 span 来精确定位光标位置
+                    const tempSpan = document.createElement('span');
+                    tempSpan.innerText = "|"; // 模拟光标
+                    element.appendChild(tempSpan);
+                    const rect = tempSpan.getBoundingClientRect();
+                    const paperRect = element.parentElement.getBoundingClientRect();
+
+                    const targetX = rect.left - paperRect.left - 8;
+                    const targetY = rect.top - paperRect.top - 32; // 笔尖对准文字
+
+                    gsap.to(pen, {
+                        left: targetX + jitterX,
+                        top: targetY + jitterY,
+                        rotation: -10 + Math.random() * 15, // 模拟书写角度变化
+                        duration: 0.1
+                    });
+
+                    element.removeChild(tempSpan);
+
+                    // 不同的节奏：空格或标点符号停顿稍长，普通字符随机波动
+                    let char = text.charAt(i - 1);
+                    let delay = baseDelay + Math.random() * 100;
+                    if (char === '。' || char === '！' || char === '？' || char === '\n') {
+                        delay += 400;
+                    } else if (char === '，') {
+                        delay += 200;
+                    }
+
+                    typewriterTimeout = setTimeout(type, delay);
+                } else {
+                    // 书写完毕，笔缓缓滑走或消失
+                    gsap.to(pen, {
+                        opacity: 0,
+                        duration: 1,
+                        delay: 1,
+                        onComplete: () => pen.style.display = 'none'
+                    });
+                }
+            }
+            type();
         }
 
         function closeLetter() {
             const overlay = document.getElementById('letterOverlay');
+            const pen = document.getElementById('quillPen');
+            clearTimeout(typewriterTimeout);
+
             gsap.to(overlay, {
                 opacity: 0, duration: 0.5, onComplete: () => {
                     overlay.style.display = 'none';
+                    pen.style.display = 'none';
+                    gsap.set(pen, { opacity: 1 });
                     gsap.set('.letter-paper', { y: 50 });
                     // 返回星空视角
                     gsap.to(camera.position, { x: 0, y: 0, z: 12, duration: 2, ease: "power2.inOut" });

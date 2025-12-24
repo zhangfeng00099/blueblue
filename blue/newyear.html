@@ -118,6 +118,8 @@
             align-items: center;
             opacity: 0;
             /* 初始隐藏，由GSAP控制 */
+            pointer-events: none;
+            /* 关键：初始状态不接收鼠标事件，防止遮挡底层星空 */
         }
 
         /* 玻璃拟态面板 */
@@ -131,6 +133,8 @@
             text-align: center;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             max-width: 90%;
+            pointer-events: auto;
+            /* 允许面板内的交互 */
         }
 
         .title-top {
@@ -566,7 +570,7 @@
     <canvas id="webgl-canvas"></canvas>
     <div class="ambient-light" id="light-follow"></div>
 
-    <div class="main-content">
+    <!-- <div class="main-content">
         <div class="glass-panel">
             <div class="title-top">A New Chapter Begins</div>
             <h1 class="main-title">2026 跨年盛典</h1>
@@ -594,7 +598,7 @@
             <div style="margin-top: 20px; font-size: 0.8rem; color: var(--gold); letter-spacing: 2px;">探索星空，寻找那些珍贵的回忆
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- 底部导航 -->
     <div class="photo-nav" id="photoNav"></div>
@@ -944,6 +948,8 @@
                     ease: "power2.inOut",
                     onComplete: () => {
                         introOverlay.style.display = 'none';
+                        // 彻底移除遮罩，确保不拦截事件
+                        introOverlay.remove();
                     }
                 });
 
@@ -963,6 +969,13 @@
                     onStart: () => {
                         document.querySelector('.photo-nav').style.pointerEvents = 'auto';
                     }
+                });
+
+                // 4. 主文字内容淡入（但保持 pointer-events: none，除非点击按钮）
+                gsap.to('.main-content', {
+                    opacity: 1,
+                    duration: 2,
+                    delay: 1.5
                 });
             }
 
@@ -1069,15 +1082,22 @@
 
         // --- 1.1 轨道控制器 (探索模式) ---
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true; // 启用阻尼感，让滑动更顺滑
+        controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.rotateSpeed = 0.5;
-        controls.enableZoom = true;    // 允许缩放
+        controls.rotateSpeed = 0.8; // 稍微提高旋转速度
+        controls.enableZoom = true;
         controls.minDistance = 2;
-        controls.maxDistance = 20;
-        controls.autoRotate = true;    // 开启自动巡航
+        controls.maxDistance = 40; // 增加最大距离
+        controls.autoRotate = true;
         controls.autoRotateSpeed = 0.3;
-        controls.enablePan = false;    // 禁用平移，保持以中心探索
+        controls.enablePan = false;
+
+        // 显式开启触摸支持
+        controls.enableTouchRotate = true;
+        controls.touches = {
+            ONE: THREE.TOUCH.ROTATE,
+            TWO: THREE.TOUCH.DOLLY_PAN
+        };
 
         // 交互时暂停自动旋转
         controls.addEventListener('start', () => {

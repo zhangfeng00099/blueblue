@@ -274,7 +274,7 @@
             opacity: 0;
             backdrop-filter: blur(10px);
             overflow-y: auto;
-            /* 允许滚动 */
+            /* 允许滚动，防止说明文字太长 */
             padding: 20px 0;
         }
 
@@ -282,8 +282,10 @@
             position: relative;
             width: 85vw;
             height: 85vw;
+            /* 强制正方形 */
             max-width: 500px;
             max-height: 500px;
+            /* 强制正方形 */
             background: #000;
             border-radius: 8px;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
@@ -292,6 +294,7 @@
             justify-content: center;
             align-items: center;
             overflow: visible;
+            /* 让内容溢出容器但仍在 overlay 内 */
             padding: 12px;
             margin: auto;
         }
@@ -301,8 +304,26 @@
             height: 100%;
             display: block;
             object-fit: cover;
+            /* 居中裁剪关键 */
             object-position: center;
             border-radius: 4px;
+        }
+
+        .photo-caption {
+            position: absolute;
+            bottom: -80px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: #fff;
+            padding: 20px 10px;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            line-height: 1.5;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.5));
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
         }
 
         /* 弹出层照片的星空相框 */
@@ -314,6 +335,7 @@
             right: 0;
             bottom: 0;
             padding: 4px;
+            /* 相框边框宽度 */
             border-radius: 8px;
             background: linear-gradient(135deg, #D4AF37 0%, #fdfc47 50%, #D4AF37 100%);
             -webkit-mask:
@@ -323,57 +345,46 @@
             mask-composite: exclude;
             pointer-events: none;
             z-index: 10;
-        }
-
-        /* 外部发光 */
-        .photo-container::after {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            border: 2px solid rgba(0, 242, 255, 0.4);
-            border-radius: 12px;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
-            pointer-events: none;
-            z-index: 0;
+            /* 确保在照片之上，起到压边的效果 */
         }
 
         .close-overlay {
             position: absolute;
-            top: -35px;
-            right: 0;
+            top: 30px;
+            right: 30px;
             color: #fff;
-            font-size: 1.5rem;
+            font-size: 2.5rem;
             cursor: pointer;
-            font-family: Arial, sans-serif;
-            z-index: 10;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            transition: transform 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* 照片说明文字 */
-        .photo-caption {
-            position: absolute;
-            bottom: 30px;
-            right: 25px;
-            color: rgba(255, 255, 255, 0.95);
-            font-family: 'Long Cang', 'Zhi Mang Xing', cursive;
-            font-size: 1.4rem;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 0 5px rgba(0, 0, 0, 0.5);
-            transform: rotate(-3deg);
-            z-index: 100;
-            pointer-events: none;
-            max-width: 85%;
-            text-align: right;
-            line-height: 1.2;
-            letter-spacing: 1px;
-            opacity: 0;
-            filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+        .close-overlay:hover {
+            transform: rotate(90deg) scale(1.2);
+            color: #ff4d4d;
         }
 
-        /* 移动端照片适配 */
+        /* 移动端特殊处理 */
         @media (max-width: 768px) {
+            .letter-overlay {
+                padding: 20px 0;
+            }
+
+            .letter-paper {
+                padding: 40px 20px;
+                width: 92%;
+                min-height: 300px;
+            }
+
+            .letter-content {
+                font-size: 1.2rem;
+            }
+
             .photo-container {
                 width: 90vw;
                 height: 90vw;
@@ -383,15 +394,10 @@
             }
 
             .photo-caption {
-                font-size: 1.1rem !important;
-                bottom: -60px !important;
-                right: 0 !important;
-                width: 100% !important;
-                text-align: center !important;
-                transform: none !important;
-                background: rgba(0, 0, 0, 0.3);
-                padding: 10px;
-                border-radius: 4px;
+                bottom: 0;
+                font-size: 0.95rem;
+                padding: 15px 8px;
+                background: rgba(0, 0, 0, 0.6);
             }
 
             .photo-overlay .close-overlay {
@@ -540,10 +546,8 @@
 
         .letter-paper {
             background: #f4e4bc;
-            /* 牛皮纸底色 */
             background-image:
                 linear-gradient(rgba(139, 69, 19, 0.15) 1px, transparent 1px),
-                radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.05) 100%),
                 url('https://www.transparenttextures.com/patterns/handmade-paper.png');
             background-size: 100% 2.08rem, auto, auto;
             width: 90%;
@@ -552,45 +556,12 @@
             min-height: 500px;
             padding: 60px 50px;
             border-radius: 2px;
-            box-shadow:
-                0 0 50px rgba(0, 0, 0, 0.6),
-                inset 0 0 100px rgba(139, 69, 19, 0.15);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.6);
             position: relative;
-            transform: translateY(20px);
-            color: #3d2b1f;
+            transform: translateY(50px);
             font-family: "Long Cang", cursive;
-            line-height: 1.6;
-            border: 1px solid #d2b48c;
-        }
-
-        /* 移动端特殊处理 */
-        @media (max-width: 768px) {
-            .letter-overlay {
-                padding: 20px 0;
-            }
-
-            .letter-paper {
-                padding: 40px 20px;
-                width: 92%;
-            }
-
-            .letter-content {
-                font-size: 1.2rem;
-            }
-
-            .close-overlay {
-                top: 10px;
-                right: 15px;
-                position: fixed;
-                /* 移动端关闭按钮固定，防止滚走 */
-                background: rgba(0, 0, 0, 0.5);
-                width: 30px;
-                height: 30px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                border-radius: 50%;
-            }
+            line-height: 1.8;
+            color: #3d2b1f;
         }
 
         /* 增加牛皮纸不规则边缘感 */
@@ -778,9 +749,12 @@
     <div class="photo-nav" id="photoNav"></div>
 
     <!-- 照片放大展示 -->
-    <div class="close-overlay">×</div>
-    <img src="" id="expandedImg" onclick="event.stopPropagation()">
-    </div>
+    <div class="photo-overlay" id="photoOverlay" onclick="closeOverlay()">
+        <div class="close-overlay">×</div>
+        <div class="photo-container" onclick="event.stopPropagation()">
+            <img src="" id="expandedImg">
+            <div class="photo-caption" id="photoCaption"></div>
+        </div>
     </div>
 
     <!-- 信件展示层 -->
@@ -795,7 +769,7 @@
         <span id="music-icon">🎵</span>
     </div>
 
-    <audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+    <audio id="bg-music" loop src="https://m801.music.126.net/20251225120000/告白气球.mp3"></audio>
 
     <script>
         // --- 0. 全局状态 ---
@@ -1431,6 +1405,11 @@
             'img/xiaohan3.jpg',
             'LETTER' // 特殊类型标识
         ];
+        const photoCaptions = [
+            "2024年初雪，我们在断桥边许下的心愿。",
+            "夏日的海边，你笑得比阳光还要灿烂。",
+            "秋叶落下的时候，只想牵着你的手一直走。"
+        ];
         const letterFullText = "慢慢飘落的枫叶像思念\n我点燃烛火温暖岁末的秋天\n极光掠过天边 北风掠过想你的容颜\n我把爱烧成了落叶 却换不回熟悉的那张脸\n\n缓缓飘落的枫叶像思念\n为何挽回要赶在冬天来之前\n爱你穿越时间 两行来自秋末的眼泪\n让爱渗透了地面 我要的只是你在我身边";
 
         const textureLoader = new THREE.TextureLoader();
@@ -1632,7 +1611,7 @@
                     if (url === 'LETTER') {
                         showLetter();
                     } else {
-                        showPhoto(url);
+                        showPhoto(url, index);
                     }
                 }
             });
@@ -1678,15 +1657,16 @@
             }
         }
         window.addEventListener('click', onPlanetClick);
+        let touchStartX, touchStartY;
         window.addEventListener('touchstart', (e) => {
             // 记录触摸开始位置，防止滑动触发点击
-            this.touchStartX = e.touches[0].clientX;
-            this.touchStartY = e.touches[0].clientY;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
         });
         window.addEventListener('touchend', (e) => {
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
-            const dist = Math.sqrt(Math.pow(touchEndX - this.touchStartX, 2) + Math.pow(touchEndY - this.touchStartY, 2));
+            const dist = Math.sqrt(Math.pow(touchEndX - touchStartX, 2) + Math.pow(touchEndY - touchStartY, 2));
             if (dist < 10) onPlanetClick(e.changedTouches[0]);
         });
 
@@ -1696,6 +1676,13 @@
             const overlay = document.getElementById('letterOverlay');
             const content = document.getElementById('letterContent');
             const pen = document.getElementById('quillPen');
+
+            // 隐藏对应的星球
+            planets.forEach(p => {
+                if (p.userData && p.userData.imgUrl === 'LETTER') {
+                    p.visible = false;
+                }
+            });
 
             content.innerText = "";
             overlay.style.display = 'flex';
@@ -1770,6 +1757,9 @@
             const pen = document.getElementById('quillPen');
             clearTimeout(typewriterTimeout);
 
+            // 恢复所有星球显示
+            planets.forEach(p => p.visible = true);
+
             gsap.to(overlay, {
                 opacity: 0, duration: 0.5, onComplete: () => {
                     overlay.style.display = 'none';
@@ -1785,25 +1775,59 @@
             });
         }
 
-        function showPhoto(url) {
+        function showPhoto(url, index) {
+            const overlay = document.getElementById('photoOverlay');
             const container = overlay.querySelector('.photo-container');
             const img = document.getElementById('expandedImg');
+            const caption = document.getElementById('photoCaption');
+
+            // 立即重置图片，解决上一张残留 bug
+            img.style.display = 'none';
+            img.src = "";
+            caption.innerText = "";
+
+            // 隐藏对应的星球
+            planets.forEach(p => {
+                if (p.userData && p.userData.imgUrl === url) {
+                    p.visible = false;
+                }
+            });
+
+            // 停止可能正在进行的隐藏动画
+            gsap.killTweensOf(overlay);
+
+            img.onload = () => {
+                img.style.display = 'block';
+                overlay.style.display = 'flex';
+                // 设置说明文字
+                if (photoCaptions[index]) {
+                    caption.innerText = photoCaptions[index];
+                }
+
+                gsap.set(overlay, { opacity: 1 }); // 立即显示背景
+                gsap.fromTo(container,
+                    { scale: 0.8, opacity: 0 },
+                    { scale: 1, opacity: 1, duration: 0.8, ease: "back.out(1.7)" }
+                );
+            };
             img.src = url;
-            overlay.style.display = 'flex';
-            gsap.to(img, { scale: 1, duration: 0.8, ease: "back.out(1.7)" });
-            gsap.to(container, { scale: 1, duration: 0.8, ease: "back.out(1.7)" });
         }
 
         function closeOverlay() {
+            const overlay = document.getElementById('photoOverlay');
             const container = overlay.querySelector('.photo-container');
             const img = document.getElementById('expandedImg');
 
-            // 1. 隐藏照片弹出层
+            // 恢复所有星球显示
+            planets.forEach(p => p.visible = true);
+
             gsap.to(overlay, {
                 opacity: 0,
                 duration: 0.5,
                 onComplete: () => {
-                    img.style.transform = 'scale(0.8)';
+                    overlay.style.display = 'none';
+                    img.src = ""; // 清理资源
+                    img.style.display = 'none';
                     gsap.set(container, { scale: 0.8 });
                 }
             });
@@ -1812,7 +1836,7 @@
             gsap.to(camera.position, {
                 x: 0,
                 y: 0,
-                z: 15, // 回归到较远的距离
+                z: 15,
                 duration: 2,
                 ease: "power2.inOut",
                 onUpdate: () => {
@@ -1828,12 +1852,10 @@
                 duration: 2,
                 ease: "power2.inOut",
                 onComplete: () => {
-                    // 4. 重新开启自动巡航
                     controls.autoRotate = true;
                 }
             });
 
-            // 5. 取消导航栏的高亮
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });

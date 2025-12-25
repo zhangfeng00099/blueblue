@@ -549,13 +549,13 @@
             /* 移动端顶部对齐，方便滚动 */
             opacity: 0;
             backdrop-filter: blur(15px);
-            overflow-y: auto;
-            /* 允许弹出层本身滚动 */
+            /* 移除背景层的滚动，只让信纸内部滚动 */
             padding: 40px 0;
             /* 上下留白 */
         }
 
         .letter-paper {
+            height: 80% !important;
             background: #f4e4bc;
             /* 牛皮纸底色 */
             background-image:
@@ -568,8 +568,8 @@
             width: 90%;
             max-width: 500px;
             margin: auto;
-            /* 配合 flex-start 实现垂直居中感 */
-            min-height: 400px;
+            max-height: 80vh;
+            /* 恢复为最大高度，避免短信件时下方留白过多 */
             padding: 50px 30px;
             border-radius: 2px;
             box-shadow:
@@ -581,6 +581,19 @@
             font-family: "Long Cang", cursive;
             line-height: 1.6;
             border: 1px solid #d2b48c;
+            overflow-y: auto;
+            /* 纵向超出可滚动 */
+            overflow-x: hidden;
+            /* 严禁横向滚动 */
+            scrollbar-width: none;
+            /* Firefox 隐藏滚动条 */
+            -ms-overflow-style: none;
+            /* IE/Edge 隐藏滚动条 */
+        }
+
+        /* Chrome/Safari 隐藏滚动条 */
+        .letter-paper::-webkit-scrollbar {
+            display: none;
         }
 
         /* 移动端特殊处理 */
@@ -821,7 +834,7 @@
 
     <!-- 信件展示层 -->
     <div class="letter-overlay" id="letterOverlay" onclick="closeLetter()">
-        <div class="letter-paper" onclick="event.stopPropagation()">
+        <div class="letter-paper" id="letterPaper" onclick="event.stopPropagation()">
             <div class="quill-pen" id="quillPen">✒️</div>
             <div class="letter-content" id="letterContent"></div>
         </div>
@@ -831,18 +844,18 @@
         <span id="music-icon">🎵</span>
     </div>
 
-    <audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+    <audio id="bg-music" loop src="https://m801.music.126.net/20251225120000/告白气球.mp3"></audio>
 
     <script>
         // --- 0. 全局状态 ---
         var isCosmosReady = false; // 星空是否准备就绪
 
         // 照片说明文字映射
-        const photoCaptions = {
-            'img/ny1.jpg': '我<span style="color: #ff4d4d; font-weight: bold;">第一次</span>撸猫',
-            'img/ny2.jpg': '我<span style="color: #ff4d4d; font-weight: bold;">第一次</span>和最爱的人听演唱会，她好可爱，她拍照好好看',
-            'img/ny3.jpg': '我很久以来<span style="color: #ff4d4d; font-weight: bold;">第一次</span>敢毫无退路的爱一个人'
-        };
+        const photoCaptions = [
+            '我<span style="color: #ff4d4d; font-weight: bold;">第一次</span>撸猫',
+            '我<span style="color: #ff4d4d; font-weight: bold;">第一次</span>和最爱的人听演唱会，她好可爱，她拍照好好看',
+            '我很久以来<span style="color: #ff4d4d; font-weight: bold;">第一次</span>敢毫无退路的爱一个人'
+        ];
 
         // --- 0.1 开场烟花转场系统 ---
         (function () {
@@ -1197,6 +1210,7 @@
                 });
 
                 // 2. 星空相机入场：从深空拉近到星团
+                controls.enabled = true; // 开启控制器
                 gsap.to(camera.position, {
                     z: 12,
                     duration: 3.5,
@@ -1342,17 +1356,26 @@
                 }
             }
 
-            introOverlay.addEventListener('mousedown', (e) => { isDragging = true; handleMove(e.clientX, e.clientY); });
-            introOverlay.addEventListener('mousemove', (e) => { if (isDragging) handleMove(e.clientX, e.clientY); });
+            introOverlay.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                isDragging = true;
+                handleMove(e.clientX, e.clientY);
+            });
+            introOverlay.addEventListener('mousemove', (e) => {
+                e.stopPropagation();
+                if (isDragging) handleMove(e.clientX, e.clientY);
+            });
             window.addEventListener('mouseup', () => { isDragging = false; });
 
             introOverlay.addEventListener('touchstart', (e) => {
+                e.stopPropagation();
                 isDragging = true;
                 handleMove(e.touches[0].clientX, e.touches[0].clientY);
-            }, { passive: true });
+            }, { passive: false }); // 改为 false 以便可能需要 preventDefault
             introOverlay.addEventListener('touchmove', (e) => {
+                e.stopPropagation();
                 if (isDragging) handleMove(e.touches[0].clientX, e.touches[0].clientY);
-            }, { passive: true });
+            }, { passive: false });
             window.addEventListener('touchend', () => { isDragging = false; });
 
             animate();
@@ -1367,6 +1390,7 @@
 
         // --- 1.1 轨道控制器 (探索模式) ---
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enabled = false; // 初始禁用，防止摩擦烟花时误触背景
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.rotateSpeed = 0.8; // 稍微提高旋转速度
@@ -1761,7 +1785,7 @@
                     if (url === 'LETTER') {
                         showLetter();
                     } else {
-                        showPhoto(url);
+                        showPhoto(url, index);
                     }
                 }
             });
@@ -1786,6 +1810,17 @@
         const mouse = new THREE.Vector2();
 
         function onPlanetClick(event) {
+            // 如果开场动画还在，或者已经打开了弹窗，则禁止点击星球
+            const intro = document.getElementById('intro-overlay');
+            if (intro && intro.parentNode) return;
+
+            const photoOverlay = document.getElementById('photoOverlay');
+            const letterOverlay = document.getElementById('letterOverlay');
+            if ((photoOverlay && photoOverlay.style.display === 'flex') ||
+                (letterOverlay && letterOverlay.style.display === 'flex')) {
+                return;
+            }
+
             // 兼容触摸和鼠标
             const x = event.clientX || (event.touches && event.touches[0].clientX);
             const y = event.clientY || (event.touches && event.touches[0].clientY);
@@ -1807,15 +1842,16 @@
             }
         }
         window.addEventListener('click', onPlanetClick);
+        let touchStartX, touchStartY;
         window.addEventListener('touchstart', (e) => {
             // 记录触摸开始位置，防止滑动触发点击
-            this.touchStartX = e.touches[0].clientX;
-            this.touchStartY = e.touches[0].clientY;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
         });
         window.addEventListener('touchend', (e) => {
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
-            const dist = Math.sqrt(Math.pow(touchEndX - this.touchStartX, 2) + Math.pow(touchEndY - this.touchStartY, 2));
+            const dist = Math.sqrt(Math.pow(touchEndX - touchStartX, 2) + Math.pow(touchEndY - touchStartY, 2));
             if (dist < 10) onPlanetClick(e.changedTouches[0]);
         });
 
@@ -1823,8 +1859,12 @@
 
         function showLetter() {
             const overlay = document.getElementById('letterOverlay');
+            const paper = document.getElementById('letterPaper');
             const content = document.getElementById('letterContent');
             const pen = document.getElementById('quillPen');
+
+            // 恢复初始滚动位置
+            paper.scrollTop = 0;
 
             // 隐藏 3D 场景中的信封星球
             planets.forEach(p => {
@@ -1836,9 +1876,10 @@
             content.innerText = "";
             overlay.style.display = 'flex';
             pen.style.display = 'block';
+            controls.enabled = false; // 打开信件时禁用控制器
 
             gsap.to(overlay, { opacity: 1, duration: 0.5 });
-            gsap.to('.letter-paper', { y: 0, duration: 0.8, ease: "back.out(1.7)" });
+            gsap.to(paper, { y: 0, duration: 0.8, ease: "back.out(1.7)" });
 
             // 开始书写动画
             clearTimeout(typewriterTimeout);
@@ -1848,6 +1889,7 @@
         function startTypewriter(element, pen, text) {
             let i = 0;
             const baseDelay = 120; // 基础速度
+            const paper = document.getElementById('letterPaper');
 
             function type() {
                 if (i < text.length) {
@@ -1859,31 +1901,31 @@
                     const jitterY = Math.random() * 2;
 
                     // 获取当前书写文字的位置，让鸡毛笔跟随
-                    // 我们通过一个临时 span 来精确定位光标位置
                     const tempSpan = document.createElement('span');
                     tempSpan.innerText = "|"; // 模拟光标
                     element.appendChild(tempSpan);
                     const rect = tempSpan.getBoundingClientRect();
-                    const paperRect = element.parentElement.getBoundingClientRect();
+                    const paperRect = paper.getBoundingClientRect();
 
                     const targetX = rect.left - paperRect.left - 8;
                     const targetY = rect.top - paperRect.top - 32;
-
-                    // 判断是否是最后一行（通过查找最后一段换行符后的内容）
-                    const lastLineStart = text.lastIndexOf('\n');
-                    const isLastLine = i > lastLineStart && lastLineStart !== -1;
 
                     gsap.to(pen, {
                         left: targetX + jitterX,
                         top: targetY + jitterY,
                         rotation: -10 + Math.random() * 15,
-                        duration: isLastLine ? 0.05 : 0.1, // 最后一行移动得更快
-                        ease: isLastLine ? "none" : "power1.out"
+                        duration: 0.1,
+                        ease: "power1.out"
                     });
 
                     element.removeChild(tempSpan);
 
-                    // 不同的节奏：空格或标点符号停顿稍长，普通字符随机波动
+                    // 自动跟随书写位置滚动
+                    const scrollThreshold = paper.clientHeight * 0.7;
+                    if (targetY > scrollThreshold) {
+                        paper.scrollTop = targetY - scrollThreshold;
+                    }
+
                     let char = text.charAt(i - 1);
                     let delay = baseDelay + Math.random() * 100;
                     if (char === '。' || char === '！' || char === '？' || char === '\n') {
@@ -1899,7 +1941,9 @@
                         opacity: 0,
                         duration: 1,
                         delay: 1,
-                        onComplete: () => pen.style.display = 'none'
+                        onComplete: () => {
+                            pen.style.display = 'none';
+                        }
                     });
                 }
             }
@@ -1908,6 +1952,7 @@
 
         function closeLetter() {
             const overlay = document.getElementById('letterOverlay');
+            const paper = document.getElementById('letterPaper');
             const pen = document.getElementById('quillPen');
             clearTimeout(typewriterTimeout);
 
@@ -1919,10 +1964,11 @@
                     overlay.style.display = 'none';
                     pen.style.display = 'none';
                     gsap.set(pen, { opacity: 1 });
-                    gsap.set('.letter-paper', { y: 50 });
+                    gsap.set(paper, { y: 50 });
                     // 返回星空视角
                     gsap.to(camera.position, { x: 0, y: 0, z: 12, duration: 2, ease: "power2.inOut" });
                     gsap.to(controls.target, { x: 0, y: 0, z: 0, duration: 2, onUpdate: () => controls.update() });
+                    controls.enabled = true; // 恢复控制器
                     controls.autoRotate = true;
                     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
                 }
@@ -1931,7 +1977,7 @@
 
         let currentHandleLoad = null;
 
-        function showPhoto(url) {
+        function showPhoto(url, index) {
             const overlay = document.getElementById('photoOverlay');
             const container = overlay.querySelector('.photo-container');
             const img = document.getElementById('expandedImg');
@@ -1943,6 +1989,7 @@
             // 关键修复：立即隐藏图片，防止上一张图闪现
             img.style.display = 'none';
             img.src = "";
+            caption.innerText = "";
             gsap.set([img, caption], { opacity: 0 });
 
             // 移除之前的加载监听器
@@ -1951,10 +1998,20 @@
             }
 
             // 2. 设置新内容
-            caption.innerHTML = photoCaptions[url] || "";
+            // 隐藏对应的星球
+            planets.forEach(p => {
+                if (p.userData && p.userData.imgUrl === url) {
+                    p.visible = false;
+                }
+            });
+
+            if (photoCaptions[index]) {
+                caption.innerHTML = photoCaptions[index];
+            }
 
             // 3. 开启显示
             overlay.style.display = 'flex';
+            controls.enabled = false; // 打开照片时禁用控制器
             gsap.set(overlay, { opacity: 1 }); // 立即显示背景遮罩
             gsap.set(container, { scale: 0.8 });
 
@@ -2000,6 +2057,7 @@
                     img.src = "";
                     img.style.display = 'none';
                     gsap.set(container, { scale: 0.8 });
+                    controls.enabled = true; // 恢复控制器
                 }
             });
 

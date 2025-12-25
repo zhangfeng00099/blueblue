@@ -1726,6 +1726,10 @@
             // 必须更新控制器以支持平滑阻尼和自动旋转
             controls.update();
 
+            // 平滑鼠标位置更新
+            mouseX += (targetMouseX - mouseX) * 0.05;
+            mouseY += (targetMouseY - mouseY) * 0.05;
+
             groups.forEach((group, groupIdx) => {
                 const positions = group.points.geometry.attributes.position.array;
                 const initials = group.initialPositions;
@@ -1747,9 +1751,14 @@
                         positions[i3 + 1] += dy * force;
                     }
 
-                    // 3. 边界检查（让粒子循环出现）
-                    if (Math.abs(positions[i3]) > 10) positions[i3] = -positions[i3] * 0.9;
-                    if (Math.abs(positions[i3 + 1]) > 10) positions[i3 + 1] = -positions[i3 + 1] * 0.9;
+                    // 3. 边界检查（让粒子在球体空间内循环，防止出现“正方体”边缘）
+                    const currentDistSq = positions[i3] ** 2 + positions[i3 + 1] ** 2 + positions[i3 + 2] ** 2;
+                    if (currentDistSq > 3600) { // 半径 60 的球体边界
+                        const scale = 0.95;
+                        positions[i3] *= -scale;
+                        positions[i3 + 1] *= -scale;
+                        positions[i3 + 2] *= -scale;
+                    }
                 }
                 group.points.geometry.attributes.position.needsUpdate = true;
                 group.points.rotation.y += group.speed * 0.5;

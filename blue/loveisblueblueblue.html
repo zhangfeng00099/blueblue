@@ -273,6 +273,9 @@
             align-items: center;
             opacity: 0;
             backdrop-filter: blur(10px);
+            overflow-y: auto;
+            /* 允许滚动，防止说明文字太长 */
+            padding: 20px 0;
         }
 
         .photo-container {
@@ -290,9 +293,40 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            overflow: visible;
+            /* 改为 visible，让 caption 可以溢出容器但仍在 overlay 内 */
             padding: 12px;
-            /* 给相框留出空间 */
+            margin: auto;
+        }
+
+        /* 移动端照片适配 */
+        @media (max-width: 768px) {
+            .photo-container {
+                width: 90vw;
+                height: 90vw;
+                max-width: 400px;
+                max-height: 400px;
+                padding: 8px;
+            }
+
+            .photo-caption {
+                font-size: 1.1rem !important;
+                bottom: -60px !important;
+                /* 移动到照片下方 */
+                right: 0 !important;
+                width: 100% !important;
+                text-align: center !important;
+                transform: none !important;
+                background: rgba(0, 0, 0, 0.3);
+                padding: 10px;
+                border-radius: 4px;
+            }
+
+            .photo-overlay .close-overlay {
+                top: 20px;
+                right: 20px;
+                position: fixed;
+            }
         }
 
         .photo-overlay img {
@@ -511,9 +545,14 @@
             z-index: 1100;
             display: none;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
+            /* 移动端顶部对齐，方便滚动 */
             opacity: 0;
             backdrop-filter: blur(15px);
+            overflow-y: auto;
+            /* 允许弹出层本身滚动 */
+            padding: 40px 0;
+            /* 上下留白 */
         }
 
         .letter-paper {
@@ -526,10 +565,12 @@
             background-size: 100% 2.08rem, auto, auto;
             /* 2.08rem = 1.3rem * 1.6 (font-size * line-height) */
             background-position: 0 40px, center, center;
-            width: 95%;
+            width: 90%;
             max-width: 500px;
+            margin: auto;
+            /* 配合 flex-start 实现垂直居中感 */
             min-height: 400px;
-            padding: 40px 30px;
+            padding: 50px 30px;
             border-radius: 2px;
             box-shadow:
                 0 0 50px rgba(0, 0, 0, 0.6),
@@ -538,9 +579,38 @@
             transform: translateY(20px);
             color: #3d2b1f;
             font-family: "Long Cang", cursive;
-            line-height: 1.4;
-            overflow: visible;
+            line-height: 1.6;
             border: 1px solid #d2b48c;
+        }
+
+        /* 移动端特殊处理 */
+        @media (max-width: 768px) {
+            .letter-overlay {
+                padding: 20px 0;
+            }
+
+            .letter-paper {
+                padding: 40px 20px;
+                width: 92%;
+            }
+
+            .letter-content {
+                font-size: 1.2rem;
+            }
+
+            .close-overlay {
+                top: 10px;
+                right: 15px;
+                position: fixed;
+                /* 移动端关闭按钮固定，防止滚走 */
+                background: rgba(0, 0, 0, 0.5);
+                width: 30px;
+                height: 30px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border-radius: 50%;
+            }
         }
 
         /* 增加牛皮纸不规则边缘感 */
@@ -1756,6 +1826,13 @@
             const content = document.getElementById('letterContent');
             const pen = document.getElementById('quillPen');
 
+            // 隐藏 3D 场景中的信封星球
+            planets.forEach(p => {
+                if (p.userData && p.userData.imgUrl === 'LETTER') {
+                    p.visible = false;
+                }
+            });
+
             content.innerText = "";
             overlay.style.display = 'flex';
             pen.style.display = 'block';
@@ -1834,6 +1911,9 @@
             const pen = document.getElementById('quillPen');
             clearTimeout(typewriterTimeout);
 
+            // 恢复所有星球可见
+            planets.forEach(p => p.visible = true);
+
             gsap.to(overlay, {
                 opacity: 0, duration: 0.5, onComplete: () => {
                     overlay.style.display = 'none';
@@ -1896,7 +1976,7 @@
 
             // 7. 隐藏 3D 场景中的对应星球，避免“背后有 bug”
             planets.forEach(p => {
-                if (p.material.map && p.material.map.image && p.material.map.image.src && p.material.map.image.src.includes(url)) {
+                if (p.userData && p.userData.imgUrl === url) {
                     p.visible = false;
                 }
             });

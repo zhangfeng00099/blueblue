@@ -273,25 +273,132 @@
             align-items: center;
             opacity: 0;
             backdrop-filter: blur(10px);
+            overflow-y: auto;
+            /* 允许滚动 */
+            padding: 20px 0;
+        }
+
+        .photo-container {
+            position: relative;
+            width: 85vw;
+            height: 85vw;
+            max-width: 500px;
+            max-height: 500px;
+            background: #000;
+            border-radius: 8px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            transform: scale(0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: visible;
+            padding: 12px;
+            margin: auto;
         }
 
         .photo-overlay img {
-            max-width: 85%;
-            max-height: 85%;
-            border-radius: 10px;
-            box-shadow: 0 0 50px rgba(212, 175, 55, 0.5);
-            transform: scale(0.8);
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            object-position: center;
+            border-radius: 4px;
+        }
+
+        /* 弹出层照片的星空相框 */
+        .photo-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 4px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #D4AF37 0%, #fdfc47 50%, #D4AF37 100%);
+            -webkit-mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* 外部发光 */
+        .photo-container::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border: 2px solid rgba(0, 242, 255, 0.4);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+            pointer-events: none;
             z-index: 0;
         }
 
         .close-overlay {
-            top: 40px;
-            right: 40px;
+            position: absolute;
+            top: -35px;
             right: 0;
-            font-size: 2rem;
+            color: #fff;
             font-size: 1.5rem;
-            font-family: 'Cinzel', serif;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+            z-index: 10;
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 照片说明文字 */
+        .photo-caption {
+            position: absolute;
+            bottom: 30px;
+            right: 25px;
+            color: rgba(255, 255, 255, 0.95);
+            font-family: 'Long Cang', 'Zhi Mang Xing', cursive;
+            font-size: 1.4rem;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 0 5px rgba(0, 0, 0, 0.5);
+            transform: rotate(-3deg);
+            z-index: 100;
+            pointer-events: none;
+            max-width: 85%;
+            text-align: right;
+            line-height: 1.2;
+            letter-spacing: 1px;
+            opacity: 0;
+            filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+        }
+
+        /* 移动端照片适配 */
+        @media (max-width: 768px) {
+            .photo-container {
+                width: 90vw;
+                height: 90vw;
+                max-width: 400px;
+                max-height: 400px;
+                padding: 8px;
+            }
+
+            .photo-caption {
+                font-size: 1.1rem !important;
+                bottom: -60px !important;
+                right: 0 !important;
+                width: 100% !important;
+                text-align: center !important;
+                transform: none !important;
+                background: rgba(0, 0, 0, 0.3);
+                padding: 10px;
+                border-radius: 4px;
+            }
+
+            .photo-overlay .close-overlay {
+                top: 20px;
+                right: 20px;
+                position: fixed;
+            }
         }
 
         /* 装饰性元素 */
@@ -422,19 +529,26 @@
             z-index: 1100;
             display: none;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
+            /* 顶部对齐，方便移动端滚动 */
             opacity: 0;
             backdrop-filter: blur(15px);
+            overflow-y: auto;
+            /* 允许滚动 */
+            padding: 40px 0;
         }
 
         .letter-paper {
             background: #f4e4bc;
             /* 牛皮纸底色 */
             background-image:
+                linear-gradient(rgba(139, 69, 19, 0.15) 1px, transparent 1px),
                 radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.05) 100%),
                 url('https://www.transparenttextures.com/patterns/handmade-paper.png');
+            background-size: 100% 2.08rem, auto, auto;
             width: 90%;
             max-width: 600px;
+            margin: auto;
             min-height: 500px;
             padding: 60px 50px;
             border-radius: 2px;
@@ -442,12 +556,41 @@
                 0 0 50px rgba(0, 0, 0, 0.6),
                 inset 0 0 100px rgba(139, 69, 19, 0.15);
             position: relative;
-            transform: translateY(50px);
+            transform: translateY(20px);
             color: #3d2b1f;
-            font-family: "Zhi Mang Xing", cursive;
-            line-height: 1.8;
-            overflow: visible;
+            font-family: "Long Cang", cursive;
+            line-height: 1.6;
             border: 1px solid #d2b48c;
+        }
+
+        /* 移动端特殊处理 */
+        @media (max-width: 768px) {
+            .letter-overlay {
+                padding: 20px 0;
+            }
+
+            .letter-paper {
+                padding: 40px 20px;
+                width: 92%;
+            }
+
+            .letter-content {
+                font-size: 1.2rem;
+            }
+
+            .close-overlay {
+                top: 10px;
+                right: 15px;
+                position: fixed;
+                /* 移动端关闭按钮固定，防止滚走 */
+                background: rgba(0, 0, 0, 0.5);
+                width: 30px;
+                height: 30px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border-radius: 50%;
+            }
         }
 
         /* 增加牛皮纸不规则边缘感 */

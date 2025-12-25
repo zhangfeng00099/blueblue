@@ -1857,38 +1857,49 @@
             const img = document.getElementById('expandedImg');
             const caption = document.getElementById('photoCaption');
 
-            // 1. 彻底重置：停止所有动画，隐藏图片和文字，清空 src
+            // 1. 彻底重置：停止所有动画，隐藏图片和文字，清空内容
             gsap.killTweensOf([img, caption, container, overlay]);
+
+            // 关键修复：立即隐藏图片，防止上一张图闪现
+            img.style.display = 'none';
+            img.src = "";
             gsap.set([img, caption], { opacity: 0 });
 
-            // 移除之前的加载监听器，防止多次触发或残留逻辑
+            // 移除之前的加载监听器
             if (currentHandleLoad) {
                 img.removeEventListener('load', currentHandleLoad);
             }
-
-            img.src = "";
 
             // 2. 设置新内容
             caption.innerHTML = photoCaptions[url] || "";
 
             // 3. 开启显示
             overlay.style.display = 'flex';
+            gsap.set(overlay, { opacity: 1 }); // 立即显示背景遮罩
+            gsap.set(container, { scale: 0.8 });
 
             // 4. 图片加载处理
             currentHandleLoad = () => {
-                gsap.to(img, { opacity: 1, duration: 0.5, ease: "power2.out" });
+                img.style.display = 'block';
+                gsap.to(img, { opacity: 1, duration: 0.4, ease: "power2.out" });
                 gsap.to(caption, { opacity: 1, duration: 0.5, delay: 0.2 });
                 img.removeEventListener('load', currentHandleLoad);
                 currentHandleLoad = null;
             };
             img.addEventListener('load', currentHandleLoad);
 
-            // 5. 设置新 src (在事件监听之后)
+            // 5. 设置新 src
             img.src = url;
 
-            // 6. 弹出层动画
-            gsap.to(overlay, { opacity: 1, duration: 0.5 });
-            gsap.to(container, { scale: 1, duration: 0.8, ease: "back.out(1.7)" });
+            // 6. 弹出层容器动画
+            gsap.to(container, { scale: 1, duration: 0.6, ease: "back.out(1.7)" });
+
+            // 7. 隐藏 3D 场景中的对应星球，避免“背后有 bug”
+            planets.forEach(p => {
+                if (p.material.map && p.material.map.image && p.material.map.image.src && p.material.map.image.src.includes(url)) {
+                    p.visible = false;
+                }
+            });
         }
 
         function closeOverlay() {
@@ -1897,40 +1908,41 @@
             const img = document.getElementById('expandedImg');
             const caption = document.getElementById('photoCaption');
 
-            // 1. 隐藏动画
+            // 1. 恢复所有星球可见
+            planets.forEach(p => p.visible = true);
+
+            // 2. 隐藏动画
             gsap.to(overlay, {
                 opacity: 0,
-                duration: 0.4,
+                duration: 0.3,
                 onComplete: () => {
                     overlay.style.display = 'none';
-                    gsap.set(container, { scale: 0.8 });
-                    // 彻底清空，防止下次打开闪烁
                     img.src = "";
-                    gsap.set([img, caption], { opacity: 0 });
+                    img.style.display = 'none';
+                    gsap.set(container, { scale: 0.8 });
                 }
             });
 
-            // 2. 摄像机回归全局视野
+            // 3. 摄像机回归全局视野
             gsap.to(camera.position, {
                 x: 0,
                 y: 0,
-                z: 15, // 回归到较远的距离
-                duration: 2,
+                z: 15,
+                duration: 1.5,
                 ease: "power2.inOut",
                 onUpdate: () => {
                     controls.update();
                 }
             });
 
-            // 3. 控制中心回归原点
+            // 4. 控制中心回归原点
             gsap.to(controls.target, {
                 x: 0,
                 y: 0,
                 z: 0,
-                duration: 2,
+                duration: 1.5,
                 ease: "power2.inOut",
                 onComplete: () => {
-                    // 4. 重新开启自动巡航
                     controls.autoRotate = true;
                 }
             });

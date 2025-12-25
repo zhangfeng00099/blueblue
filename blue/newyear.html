@@ -457,6 +457,10 @@
             font-size: 1.2rem;
             font-weight: bold;
             text-shadow: 0 0 10px var(--gold);
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .nav-item img {
@@ -469,7 +473,7 @@
         }
 
         .nav-item.unlocked::before {
-            display: none;
+            display: none !important;
         }
 
         .nav-item.unlocked img {
@@ -607,6 +611,10 @@
         .nav-item.letter-type::before {
             content: '✉';
             font-size: 1.5rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* 开场烟花遮罩 */

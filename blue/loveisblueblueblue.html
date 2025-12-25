@@ -7,7 +7,7 @@
     <title>2026 新年盛典 | 遇见浪漫</title>
     <!-- 引入高级感字体 -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@300;600&family=Zhi+Mang+Xing&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+SC:wght@300;600&family=Zhi+Mang+Xing&family=Long+Cang&family=Ma+Shan+Zheng&display=swap"
         rel="stylesheet">
     <script src="js/three.min.js"></script>
     <script src="js/OrbitControls.js"></script>
@@ -275,23 +275,103 @@
             backdrop-filter: blur(10px);
         }
 
-        .photo-overlay img {
-            max-width: 85%;
-            max-height: 85%;
-            border-radius: 10px;
-            box-shadow: 0 0 50px rgba(212, 175, 55, 0.5);
+        .photo-container {
+            position: relative;
+            width: 85vw;
+            height: 85vw;
+            /* 强制正方形 */
+            max-width: 500px;
+            max-height: 500px;
+            /* 强制正方形 */
+            background: #000;
+            border-radius: 8px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
             transform: scale(0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 12px;
+            /* 给相框留出空间 */
+        }
+
+        .photo-overlay img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            /* 居中裁剪关键 */
+            object-position: center;
+            border-radius: 4px;
+        }
+
+        /* 弹出层照片的星空相框 */
+        .photo-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 4px;
+            /* 相框边框宽度 */
+            border-radius: 8px;
+            background: linear-gradient(135deg, #D4AF37 0%, #fdfc47 50%, #D4AF37 100%);
+            -webkit-mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 10;
+            /* 确保在照片之上，起到压边的效果 */
+        }
+
+        /* 外部发光 */
+        .photo-container::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border: 2px solid rgba(0, 242, 255, 0.4);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+            pointer-events: none;
             z-index: 0;
         }
 
         .close-overlay {
-            top: 40px;
-            right: 40px;
+            position: absolute;
+            top: -35px;
             right: 0;
-            font-size: 2rem;
+            color: #fff;
             font-size: 1.5rem;
-            font-family: 'Cinzel', serif;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+            z-index: 10;
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 照片说明文字 */
+        .photo-caption {
+            position: absolute;
+            bottom: 30px;
+            right: 25px;
+            color: rgba(255, 255, 255, 0.95);
+            font-family: 'Long Cang', 'Zhi Mang Xing', cursive;
+            font-size: 1.4rem;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9), 0 0 5px rgba(0, 0, 0, 0.5);
+            transform: rotate(-3deg);
+            z-index: 100;
+            pointer-events: none;
+            max-width: 85%;
+            text-align: right;
+            line-height: 1.2;
+            letter-spacing: 1px;
+            opacity: 0;
+            filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
         }
 
         /* 装饰性元素 */
@@ -344,6 +424,15 @@
             font-size: 1.2rem;
             font-weight: bold;
             text-shadow: 0 0 10px var(--gold);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
         }
 
         .nav-item img {
@@ -431,21 +520,25 @@
             background: #f4e4bc;
             /* 牛皮纸底色 */
             background-image:
+                linear-gradient(rgba(139, 69, 19, 0.15) 1px, transparent 1px),
                 radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.05) 100%),
                 url('https://www.transparenttextures.com/patterns/handmade-paper.png');
-            width: 90%;
-            max-width: 600px;
-            min-height: 500px;
-            padding: 60px 50px;
+            background-size: 100% 2.08rem, auto, auto;
+            /* 2.08rem = 1.3rem * 1.6 (font-size * line-height) */
+            background-position: 0 40px, center, center;
+            width: 95%;
+            max-width: 500px;
+            min-height: 400px;
+            padding: 40px 30px;
             border-radius: 2px;
             box-shadow:
                 0 0 50px rgba(0, 0, 0, 0.6),
                 inset 0 0 100px rgba(139, 69, 19, 0.15);
             position: relative;
-            transform: translateY(50px);
+            transform: translateY(20px);
             color: #3d2b1f;
-            font-family: "Zhi Mang Xing", cursive;
-            line-height: 1.8;
+            font-family: "Long Cang", cursive;
+            line-height: 1.4;
             overflow: visible;
             border: 1px solid #d2b48c;
         }
@@ -465,7 +558,7 @@
         }
 
         .letter-content {
-            font-size: 1.8rem;
+            font-size: 1.3rem;
             white-space: pre-wrap;
             position: relative;
             z-index: 2;
@@ -582,6 +675,19 @@
             .photo-gallery {
                 display: none;
             }
+
+            .letter-paper {
+                padding: 30px 20px;
+                min-height: 300px;
+                background-size: 100% 1.65rem, auto, auto;
+                /* 1.65rem = 1.1rem * 1.5 (mobile font-size * line-height) */
+                background-position: 0 30px, center, center;
+            }
+
+            .letter-content {
+                font-size: 1.1rem;
+                line-height: 1.5;
+            }
         }
     </style>
 </head>
@@ -635,9 +741,12 @@
     <div class="photo-nav" id="photoNav"></div>
 
     <!-- 照片放大展示 -->
-    <div class="close-overlay">×</div>
-    <img src="" id="expandedImg" onclick="event.stopPropagation()">
-    </div>
+    <div class="photo-overlay" id="photoOverlay" onclick="closeOverlay()">
+        <div class="photo-container" onclick="event.stopPropagation()">
+            <div class="close-overlay" onclick="closeOverlay()">×</div>
+            <img src="" id="expandedImg">
+            <div class="photo-caption" id="photoCaption"></div>
+        </div>
     </div>
 
     <!-- 信件展示层 -->
@@ -657,6 +766,13 @@
     <script>
         // --- 0. 全局状态 ---
         var isCosmosReady = false; // 星空是否准备就绪
+
+        // 照片说明文字映射
+        const photoCaptions = {
+            'img/ny1.jpg': '我<span style="color: #ff4d4d; font-weight: bold;">第一次</span>撸猫',
+            'img/ny2.jpg': '我<span style="color: #ff4d4d; font-weight: bold;">第一次</span>和最爱的人听演唱会，她好可爱，她拍照好好看',
+            'img/ny3.jpg': '我很久以来<span style="color: #ff4d4d; font-weight: bold;">第一次</span>敢毫无退路的爱一个人'
+        };
 
         // --- 0.1 开场烟花转场系统 ---
         (function () {
@@ -1283,12 +1399,12 @@
         // --- 照片星团系统 (镶嵌效果) ---
         const planets = [];
         const photoPaths = [
-            'img/xiaohan1.jpg',
-            'img/xiaohan2.jpg',
-            'img/xiaohan3.jpg',
+            'img/ny1.jpg',
+            'img/ny2.jpg',
+            'img/ny3.jpg',
             'LETTER' // 特殊类型标识
         ];
-        const letterFullText = "慢慢飘落的枫叶像思念\n我点燃烛火温暖岁末的秋天\n极光掠过天边 北风掠过想你的容颜\n我把爱烧成了落叶 却换不回熟悉的那张脸\n\n缓缓飘落的枫叶像思念\n为何挽回要赶在冬天来之前\n爱你穿越时间 两行来自秋末的眼泪\n让爱渗透了地面 我要的只是你在我身边";
+        const letterFullText = "2025 的开篇，我从未想过会遇见这样一份圆满。\n直到 5 月 7 日，你慢慢的走进我的生活，从此我的世界，有了最温柔的光和最坚定的方向。\n这大半年的日子，从“教练”到“小宝宝”，和你在一起的每一刻，都被温柔填满。我们分享细碎的日常，分担偶尔的情绪，一起走过平凡的日子，也一起期待着往后的岁岁年年。\n转眼，就要和 2025 挥手，奔赴崭新的 2026 了✨\n\n关于 2026，我心里攒了好多好多的期许，而所有的期许，全部都关于你。\n我盼着，能奔赴你的城市，和你朝夕相守，住在同一个屋檐下。清晨一起醒来，傍晚一起归家，把彼此的喜怒哀乐都妥帖收藏，开心有人共分享，委屈有人能依靠，不用再隔着屏幕想念，而是一转身就能拥抱到彼此的温暖。\n我盼着，我好好存钱，慢慢奔赴，早日把心心念念的小米 SU7 开回家，往后的路，风里里，我都载着你，一起奔赴更远的远方。\n我盼着，陪你去完成所有的心愿，带你去你心心念念的日本，看樱花飘落，逛温柔街巷；带你去浪漫的冰岛，追漫天极光，踩皑皑白雪，去你想去的每一座城市，看每一处风景，把世间所有的美好，都和你一起看遍。\n岁岁年年，朝朝暮暮，我最坚定的心愿，从来都只有一个：一直陪着你。\n未来的日子，或许会有未知的风雨，或许会有琐碎的难题，但没关系，我会握紧你的手，和你一起勇敢，一起面对，一起慢慢变好。\n\n                                          爱你的 胆小鬼";
 
         const textureLoader = new THREE.TextureLoader();
 
@@ -1333,12 +1449,57 @@
                         ctx.drawImage(img, 256 - drawW / 2, 256 - drawH / 2, drawW, drawH);
                         ctx.restore();
 
-                        // 3. 绘制金边
+                        // 3. 绘制酷炫星空相框
+                        ctx.save();
+
+                        // 外层发光环 (青色霓虹感)
+                        ctx.beginPath();
+                        ctx.arc(256, 256, 172, 0, Math.PI * 2);
+                        ctx.strokeStyle = 'rgba(0, 242, 255, 0.6)';
+                        ctx.lineWidth = 4;
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = '#00f2ff';
+                        ctx.stroke();
+
+                        // 主金属环 (金黄色)
                         ctx.beginPath();
                         ctx.arc(256, 256, 160, 0, Math.PI * 2);
-                        ctx.strokeStyle = '#D4AF37';
-                        ctx.lineWidth = 10;
+                        const frameGradient = ctx.createLinearGradient(100, 100, 412, 412);
+                        frameGradient.addColorStop(0, '#D4AF37');
+                        frameGradient.addColorStop(0.5, '#fdfc47');
+                        frameGradient.addColorStop(1, '#D4AF37');
+                        ctx.strokeStyle = frameGradient;
+                        ctx.lineWidth = 12;
+                        ctx.shadowBlur = 5;
+                        ctx.shadowColor = 'rgba(0,0,0,0.5)';
                         ctx.stroke();
+
+                        // 装饰星点 (四个方位)
+                        const starPoints = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
+                        ctx.fillStyle = '#fff';
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = '#fff';
+                        starPoints.forEach(angle => {
+                            const x = 256 + Math.cos(angle) * 160;
+                            const y = 256 + Math.sin(angle) * 160;
+
+                            // 绘制十字星
+                            ctx.beginPath();
+                            ctx.moveTo(x - 12, y);
+                            ctx.lineTo(x + 12, y);
+                            ctx.moveTo(x, y - 12);
+                            ctx.lineTo(x, y + 12);
+                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+
+                            // 中心亮点
+                            ctx.beginPath();
+                            ctx.arc(x, y, 4, 0, Math.PI * 2);
+                            ctx.fill();
+                        });
+
+                        ctx.restore();
 
                         resolve(new THREE.CanvasTexture(canvas));
                     },
@@ -1382,12 +1543,53 @@
             ctx.textBaseline = 'middle';
             ctx.fillText('✉', 256, 256);
 
-            // 绘制金边
+            // 绘制酷炫星空相框
+            ctx.save();
+
+            // 外层发光环 (青色霓虹感)
+            ctx.beginPath();
+            ctx.arc(256, 256, 172, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(0, 242, 255, 0.6)';
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00f2ff';
+            ctx.stroke();
+
+            // 主金属环 (金黄色)
             ctx.beginPath();
             ctx.arc(256, 256, 160, 0, Math.PI * 2);
-            ctx.strokeStyle = '#D4AF37';
-            ctx.lineWidth = 10;
+            const frameGradient = ctx.createLinearGradient(100, 100, 412, 412);
+            frameGradient.addColorStop(0, '#D4AF37');
+            frameGradient.addColorStop(0.5, '#fdfc47');
+            frameGradient.addColorStop(1, '#D4AF37');
+            ctx.strokeStyle = frameGradient;
+            ctx.lineWidth = 12;
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
             ctx.stroke();
+
+            // 装饰星点
+            const starPoints = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
+            ctx.fillStyle = '#fff';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#fff';
+            starPoints.forEach(angle => {
+                const x = 256 + Math.cos(angle) * 160;
+                const y = 256 + Math.sin(angle) * 160;
+                ctx.beginPath();
+                ctx.moveTo(x - 12, y);
+                ctx.lineTo(x + 12, y);
+                ctx.moveTo(x, y - 12);
+                ctx.lineTo(x, y + 12);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.restore();
 
             return Promise.resolve(new THREE.CanvasTexture(canvas));
         }
@@ -1588,13 +1790,18 @@
                     const paperRect = element.parentElement.getBoundingClientRect();
 
                     const targetX = rect.left - paperRect.left - 8;
-                    const targetY = rect.top - paperRect.top - 32; // 笔尖对准文字
+                    const targetY = rect.top - paperRect.top - 32;
+
+                    // 判断是否是最后一行（通过查找最后一段换行符后的内容）
+                    const lastLineStart = text.lastIndexOf('\n');
+                    const isLastLine = i > lastLineStart && lastLineStart !== -1;
 
                     gsap.to(pen, {
                         left: targetX + jitterX,
                         top: targetY + jitterY,
-                        rotation: -10 + Math.random() * 15, // 模拟书写角度变化
-                        duration: 0.1
+                        rotation: -10 + Math.random() * 15,
+                        duration: isLastLine ? 0.05 : 0.1, // 最后一行移动得更快
+                        ease: isLastLine ? "none" : "power1.out"
                     });
 
                     element.removeChild(tempSpan);
@@ -1642,26 +1849,64 @@
             });
         }
 
+        let currentHandleLoad = null;
+
         function showPhoto(url) {
+            const overlay = document.getElementById('photoOverlay');
             const container = overlay.querySelector('.photo-container');
             const img = document.getElementById('expandedImg');
-            img.src = url;
+            const caption = document.getElementById('photoCaption');
+
+            // 1. 彻底重置：停止所有动画，隐藏图片和文字，清空 src
+            gsap.killTweensOf([img, caption, container, overlay]);
+            gsap.set([img, caption], { opacity: 0 });
+
+            // 移除之前的加载监听器，防止多次触发或残留逻辑
+            if (currentHandleLoad) {
+                img.removeEventListener('load', currentHandleLoad);
+            }
+
+            img.src = "";
+
+            // 2. 设置新内容
+            caption.innerHTML = photoCaptions[url] || "";
+
+            // 3. 开启显示
             overlay.style.display = 'flex';
-            gsap.to(img, { scale: 1, duration: 0.8, ease: "back.out(1.7)" });
+
+            // 4. 图片加载处理
+            currentHandleLoad = () => {
+                gsap.to(img, { opacity: 1, duration: 0.5, ease: "power2.out" });
+                gsap.to(caption, { opacity: 1, duration: 0.5, delay: 0.2 });
+                img.removeEventListener('load', currentHandleLoad);
+                currentHandleLoad = null;
+            };
+            img.addEventListener('load', currentHandleLoad);
+
+            // 5. 设置新 src (在事件监听之后)
+            img.src = url;
+
+            // 6. 弹出层动画
+            gsap.to(overlay, { opacity: 1, duration: 0.5 });
             gsap.to(container, { scale: 1, duration: 0.8, ease: "back.out(1.7)" });
         }
 
         function closeOverlay() {
+            const overlay = document.getElementById('photoOverlay');
             const container = overlay.querySelector('.photo-container');
             const img = document.getElementById('expandedImg');
+            const caption = document.getElementById('photoCaption');
 
-            // 1. 隐藏照片弹出层
+            // 1. 隐藏动画
             gsap.to(overlay, {
                 opacity: 0,
-                duration: 0.5,
+                duration: 0.4,
                 onComplete: () => {
-                    img.style.transform = 'scale(0.8)';
+                    overlay.style.display = 'none';
                     gsap.set(container, { scale: 0.8 });
+                    // 彻底清空，防止下次打开闪烁
+                    img.src = "";
+                    gsap.set([img, caption], { opacity: 0 });
                 }
             });
 

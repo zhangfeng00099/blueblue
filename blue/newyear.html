@@ -464,12 +464,16 @@
         }
 
         .nav-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
             opacity: 0;
             transition: opacity 1s ease;
+            z-index: 1;
         }
 
         .nav-item.unlocked::before {
@@ -611,10 +615,16 @@
         .nav-item.letter-type::before {
             content: '✉';
             font-size: 1.5rem;
-            line-height: 1;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
         }
 
         /* 开场烟花遮罩 */
@@ -1408,17 +1418,17 @@
         // --- 照片星团系统 (镶嵌效果) ---
         const planets = [];
         const photoPaths = [
-            'img/xiaohan1.jpg',
-            'img/xiaohan2.jpg',
-            'img/xiaohan3.jpg',
+            'img/zx1.jpg',
+            'img/zx2.jpg',
+            'img/zx3.jpg',
             'LETTER' // 特殊类型标识
         ];
         const photoCaptions = [
-            "2024年初雪，我们在断桥边许下的心愿。",
-            "夏日的海边，你笑得比阳光还要灿烂。",
-            "秋叶落下的时候，只想牵着你的手一直走。"
+            "",
+            "",
+            ""
         ];
-        const letterFullText = "慢慢飘落的枫叶像思念\n我点燃烛火温暖岁末的秋天\n极光掠过天边 北风掠过想你的容颜\n我把爱烧成了落叶 却换不回熟悉的那张脸\n\n缓缓飘落的枫叶像思念\n为何挽回要赶在冬天来之前\n爱你穿越时间 两行来自秋末的眼泪\n让爱渗透了地面 我要的只是你在我身边";
+        const letterFullText = "岁岁年年常喜乐";
 
         const textureLoader = new THREE.TextureLoader();
 

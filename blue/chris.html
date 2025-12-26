@@ -2868,6 +2868,7 @@
         const letterPopup = document.getElementById('letterPopup');
         const letterClose = document.getElementById('letterClose');
         let isPhotoOpen = false;
+        let hasOpenedLetter = false;
 
         const photos = [
             'img/xiaohan2.jpg',
@@ -2877,6 +2878,10 @@
         ];
 
         function showPhoto(index) {
+            // 禁止背景滚动
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+
             photoImg.src = photos[index % photos.length];
 
             const angles = ['angle-1', 'angle-2', 'angle-3', 'angle-4', 'angle-5', 'angle-6'];
@@ -3071,6 +3076,10 @@
                                     letterText.classList.remove('typing-done');
                                     if (letterFooter) letterFooter.classList.remove('show');
 
+                                    // 禁止背景滚动
+                                    document.body.style.overflow = 'hidden';
+                                    document.documentElement.style.overflow = 'hidden';
+
                                     letterPopup.classList.add('show');
                                     createScatteredParticles();
                                     setTimeout(() => {
@@ -3079,7 +3088,18 @@
 
                                     setTimeout(() => {
                                         const fullText = "我一直明白你是一个很需要安全感的人。\n我完全理解你的胆怯，遇到你之前，我也不想任何人打乱自己平静平和舒适的生活节奏，我也有一堵小矮墙，就像你有个结界。\n那是一种自我保护的安全感，就像我小时候喜欢把自己“关”在一个小小的空间里，心里想着别人进不来，这是我最安全最放松的地方。\n但是，因为是你啊，\n颜若菡啊！\n我先拆了我所有围墙。\n哈哈哈哈哈细腻的人天生会把真心裹的更紧。\n其实不用害怕坦诚之后的圆满下文，会有人一直给你可靠的肩膀。\n能愿意把自己的心底的话告诉我，对我来说已经是很珍贵的事情了！\n那，我们一起勇敢前行吧，平凡的生活里，希望成为你对抗苦涩、困难、消极情绪的最可靠的战友、伙伴。\n沿途，你就是最美的风景！ ❤️";
-                                        typeWriter(letterText, fullText, 80);
+
+                                        if (hasOpenedLetter) {
+                                            // 第二次打开，直接显示
+                                            letterText.innerHTML = fullText.split('\n').map(line => `<span>${line}</span>`).join('<br>');
+                                            letterText.classList.add('typing-done');
+                                            const footer = document.getElementById('letterFooter');
+                                            if (footer) footer.classList.add('show');
+                                        } else {
+                                            // 第一次打开，打字机
+                                            typeWriter(letterText, fullText, 80);
+                                            hasOpenedLetter = true;
+                                        }
                                     }, 1200);
                                 }
                             } else {
@@ -3110,6 +3130,10 @@
         }
 
         closeBtn.addEventListener('click', () => {
+            // 恢复背景滚动
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
+
             photoFrame.classList.remove('visible');
             setTimeout(() => {
                 photoFrame.classList.remove('show');
@@ -3118,6 +3142,10 @@
         });
 
         letterClose.addEventListener('click', () => {
+            // 恢复背景滚动
+            document.body.style.overflow = '';
+            document.documentElement.style.overflow = '';
+
             letterPopup.classList.remove('visible');
             setTimeout(() => {
                 letterPopup.classList.remove('show');
